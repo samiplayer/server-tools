@@ -1,3 +1,6 @@
 Install
 
-https://github.com/samiplayer/server-tools.git
+## Install
+```Bash
+bash <(curl -Ls https://raw.githubusercontent.com/samiplayer/server-tools/main/server-tools.sh)
+```
