@@ -184,6 +184,38 @@ manage_firewall() {
     esac
 }
 
+install_pasarguard() {
+    clear
+    echo -e "${CYAN}${BOLD}============================================${NC}"
+    echo -e "             PASARGUARD INSTALLER           "
+    echo -e "${CYAN}${BOLD}============================================${NC}"
+    echo -e " 1) Install PasarGuard Panel (MySQL)"
+    echo -e " 2) Install PasarGuard Node"
+    echo -e " 0) Back to Main Menu"
+    echo -e "${CYAN}--------------------------------------------${NC}"
+    echo -e "${YELLOW}Select an option [0-2]:${NC} \c"
+    read -r PG_CHOICE
+
+    case $PG_CHOICE in
+        1)
+            print_info "Installing PasarGuard Panel (MySQL)..."
+            sudo bash -c "$(curl -fsSL https://github.com/PasarGuard/scripts/raw/main/pasarguard.sh)" @ install --database mysql
+            print_success "Panel installation process completed."
+            ;;
+        2)
+            print_info "Installing PasarGuard Node..."
+            sudo bash -c "$(curl -sL https://github.com/PasarGuard/scripts/raw/main/pg-node.sh)" @ install
+            print_success "Node installation process completed."
+            ;;
+        0)
+            return
+            ;;
+        *)
+            print_error "Invalid option."
+            ;;
+    esac
+}
+
 # ==========================================
 # Main Menu
 # ==========================================
@@ -196,7 +228,7 @@ while true; do
     IP_ADDR=$(hostname -I | awk '{print $1}')
     
     echo -e "${CYAN}${BOLD}============================================${NC}"
-    echo -e "         ${BOLD}SERVER TOOLS MANAGER v1.1${NC}"
+    echo -e "         ${BOLD}SERVER TOOLS MANAGER v1.2${NC}"
     echo -e "${CYAN}${BOLD}============================================${NC}"
     echo -e " ${GREEN}OS:${NC} $OS_INFO"
     echo -e " ${GREEN}IP:${NC} $IP_ADDR"
@@ -208,12 +240,13 @@ while true; do
     echo -e "  ${BOLD}[5]${NC} Run Server Benchmark"
     echo -e "  ${BOLD}[6]${NC} Monitor Bandwidth (nload)"
     echo -e "  ${BOLD}[7]${NC} Transfer Files (SCP)"
-    echo -e "  ${BOLD}[8]${NC} Manage Firewall (UFW) ${YELLOW}[NEW]${NC}"
+    echo -e "  ${BOLD}[8]${NC} Manage Firewall (UFW)"
+    echo -e "  ${BOLD}[9]${NC} Install PasarGuard (Panel / Node) ${YELLOW}[NEW]${NC}"
     echo -e "${CYAN}--------------------------------------------${NC}"
     echo -e "  ${RED}[0] Exit${NC}"
     echo -e "${CYAN}============================================${NC}"
 
-    echo -e "${YELLOW}Select an option [0-8]:${NC} \c"
+    echo -e "${YELLOW}Select an option [0-9]:${NC} \c"
     read -r CHOICE
 
     echo "" # Empty line for better readability
@@ -227,6 +260,7 @@ while true; do
         6) run_nload ;;
         7) transfer_file ;;
         8) manage_firewall ;;
+        9) install_pasarguard ;;
         0) print_success "Exiting. Have a great day!"; exit 0 ;;
         *) print_error "Invalid option. Please try again." ;;
     esac
