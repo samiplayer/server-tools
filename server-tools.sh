@@ -216,6 +216,48 @@ install_pasarguard() {
     esac
 }
 
+install_mtproxy() {
+    print_info "Installing Telegram Proxy (MTProto)..."
+    curl -L -o mtp_install.sh https://git.io/fj5ru && bash mtp_install.sh
+    if [ $? -eq 0 ]; then
+        print_success "Telegram Proxy installation script executed successfully."
+    else
+        print_error "Failed to install Telegram Proxy."
+    fi
+}
+
+check_port_users() {
+    # Check if netstat (net-tools) is installed
+    if ! command -v netstat &>/dev/null; then
+        print_info "netstat is not installed. Installing net-tools..."
+        apt update && apt install net-tools -y > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            print_success "net-tools installed successfully."
+        else
+            print_error "Failed to install net-tools. Please check your internet connection."
+            return
+        fi
+    fi
+
+    echo -e "${YELLOW}Enter the port number to check connected users:${NC} \c"
+    read -r PORT
+
+    if [ -z "$PORT" ]; then
+        print_error "Port cannot be empty!"
+        return
+    fi
+
+    print_info "Counting unique IP connections on port $PORT..."
+    USER_COUNT=$(netstat -anp 2>/dev/null | grep ":$PORT" | awk '{print $5}' | cut -d: -f1 | sort | uniq | wc -l)
+    
+    # Optional: Removing empty line matches if there are any
+    if [ "$USER_COUNT" -gt 0 ]; then
+        print_success "Total unique users on port $PORT: ${BOLD}$USER_COUNT${NC}"
+    else
+        print_warning "No active connections found on port $PORT."
+    fi
+}
+
 # ==========================================
 # Main Menu
 # ==========================================
@@ -228,7 +270,7 @@ while true; do
     IP_ADDR=$(hostname -I | awk '{print $1}')
     
     echo -e "${CYAN}${BOLD}============================================${NC}"
-    echo -e "         ${BOLD}SERVER TOOLS MANAGER v1.2${NC}"
+    echo -e "         ${BOLD}SERVER TOOLS MANAGER v1.3${NC}"
     echo -e "${CYAN}${BOLD}============================================${NC}"
     echo -e " ${GREEN}OS:${NC} $OS_INFO"
     echo -e " ${GREEN}IP:${NC} $IP_ADDR"
@@ -241,12 +283,14 @@ while true; do
     echo -e "  ${BOLD}[6]${NC} Monitor Bandwidth (nload)"
     echo -e "  ${BOLD}[7]${NC} Transfer Files (SCP)"
     echo -e "  ${BOLD}[8]${NC} Manage Firewall (UFW)"
-    echo -e "  ${BOLD}[9]${NC} Install PasarGuard (Panel / Node) ${YELLOW}[NEW]${NC}"
+    echo -e "  ${BOLD}[9]${NC} Install PasarGuard (Panel / Node)"
+    echo -e "  ${BOLD}[10]${NC} Install Telegram Proxy (MTProto) ${YELLOW}[NEW]${NC}"
+    echo -e "  ${BOLD}[11]${NC} Check Active Users on Port ${YELLOW}[NEW]${NC}"
     echo -e "${CYAN}--------------------------------------------${NC}"
     echo -e "  ${RED}[0] Exit${NC}"
     echo -e "${CYAN}============================================${NC}"
 
-    echo -e "${YELLOW}Select an option [0-9]:${NC} \c"
+    echo -e "${YELLOW}Select an option [0-11]:${NC} \c"
     read -r CHOICE
 
     echo "" # Empty line for better readability
@@ -261,6 +305,8 @@ while true; do
         7) transfer_file ;;
         8) manage_firewall ;;
         9) install_pasarguard ;;
+        10) install_mtproxy ;;
+        11) check_port_users ;;
         0) print_success "Exiting. Have a great day!"; exit 0 ;;
         *) print_error "Invalid option. Please try again." ;;
     esac
